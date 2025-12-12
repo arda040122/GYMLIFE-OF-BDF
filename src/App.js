@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const defaultMembers = [
   { id: 1, name: "Jan", visits: 5, username: "jan123", password: "wachtwoord1" },
@@ -15,6 +15,11 @@ export default function App() {
   const [newMemberName, setNewMemberName] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
+
+  // Set document title to "BDFF"
+  useEffect(() => {
+    document.title = "BDFF";
+  }, []);
 
   function handleLogin(e) {
     e.preventDefault();
@@ -56,7 +61,7 @@ export default function App() {
   if (!user) {
     return (
       <div style={styles.container}>
-        <h1>BDF GYM life</h1>
+        <h1>BDFF</h1>
         <form onSubmit={handleLogin} style={styles.form}>
           <input
             type="text"
@@ -84,10 +89,11 @@ export default function App() {
     return (
       <div style={styles.container}>
         <div style={styles.topRight}>
+          {/* Uitlogknop zichtbaar rechtsboven */}
           <button onClick={handleLogout} style={styles.logoutButton}>Uitloggen</button>
         </div>
 
-        <h1>Admin-menu - BDF GYM life</h1>
+        <h1>Admin-menu - BDFF</h1>
 
         <h2>Leden toevoegen</h2>
         <div style={{ marginBottom: 20 }}>
@@ -162,11 +168,13 @@ const styles = {
     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
     textAlign: "center",
     position: "relative",
+    minHeight: "400px",
   },
   topRight: {
     position: "absolute",
     top: 10,
     right: 10,
+    zIndex: 10,
   },
   form: {
     display: "flex",
@@ -198,7 +206,7 @@ const styles = {
     marginTop: 5,
   },
   logoutButton: {
-    padding: 8,
+    padding: "8px 12px",
     fontSize: 14,
     borderRadius: 4,
     border: "none",
