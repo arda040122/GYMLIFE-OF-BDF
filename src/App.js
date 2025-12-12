@@ -174,3 +174,30 @@ const styles = {
     cursor: "pointer",
   }
 };
+
+if (!user) {
+  return (
+    <div style={styles.container}>
+      <h1>BDF GYM life</h1>
+      <form onSubmit={handleLogin} style={styles.form}>
+        <input
+          type="text"
+          placeholder="Gebruikersnaam"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          style={styles.input}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Wachtwoord"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          style={styles.input}
+          required
+        />
+        <button type="submit" style={styles.button}>Inloggen</button>
+      </form>
+    </div>
+  );
+}
