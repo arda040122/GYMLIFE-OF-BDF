@@ -3,24 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Tracker - Admin</title>
+    <title>Gym App - Admin Login</title>
     <style>
-        body { font-family: Arial; background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; }
-        .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { background: white; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 30px; }
-        .header h1 { font-size: 2em; color: #667eea; }
-        .admin-section { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; }
-        .workout-list { max-height: 400px; overflow-y: auto; }
-        .workout-item { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 10px; }
-        .workout-item h3 { color: #333; margin-bottom: 5px; }
-        .workout-item p { color: #666; margin-bottom: 10px; }
-        .workout-item small { color: #999; }
-        .btn { padding: 12px 24px; border: none; border-radius: 25px; font-size: 16px; cursor: pointer; background: #667eea; color: white; margin: 5px; }
-        .btn-danger { background: #dc3545; }
-        .back-btn { background: #6c757d; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000; /* Zwarte achtergrond voor gym-thema */
+            color: #ffffff; /* Witte tekst voor contrast */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #222222; /* Donkergrijze container voor diepte */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.1); /* Subtiele schaduw */
+            width: 400px; /* Breder gemaakt voor meer inhoud */
+            border: 1px solid #444444; /* Subtiele rand */
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #555555;
+            border-radius: 4px;
+            background: #333333; /* Donkere input velden */
+            color: #ffffff;
+        }
+        input::placeholder {
+            color: #cccccc; /* Lichtere placeholder tekst */
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #ff4500; /* Oranje/rood voor gym-energie */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #e63900; /* Donkerdere hover */
+        }
+        #admin-panel, #user-panel {
+            display: none;
+        }
+        #members-list {
+            margin-top: 20px;
+        }
+        .member {
+            background: #333333; /* Donkere achtergrond voor leden */
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #555555;
+        }
+        h1, h2, h3 {
+            color: #ff4500; /* Oranje koppen voor accent */
+            text-align: center;
+        }
+        .role-admin {
+            display: none; /* Alleen tonen voor admin */
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>
+    <div class="container">
+        <h1>BDF GYM LIFE</h1> <!-- Nieuwe titel boven alles -->
+        
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="text" id="username" placeholder="Gebruikersnaam">
+            <input type="password" id="password" placeholder="Wachtwoord">
+            <button onclick="login()">Inloggen</button>
+            <p id="error" style="color: #ff4500; display: none;">Verkeerde gebruikersnaam of wachtwoord!</p>
+        </div>
+        
+        <div id="admin-panel">
+            <h2>Admin Panel - Volledige Rechten</h2>
+            <h3>Leden Toevoegen</h3>
+            <input type="text" id="member-name" placeholder="Naam lid">
+            <input type="email" id="member-email" placeholder="E-mail lid">
+            <input type="text" id="member-id" placeholder="Lidmaatschapsnummer">
+            <button onclick="addMember()">Lid Toevoegen</button>
+            
+            <h3>Gebruikers Toevoegen (voor speciale panels)</h3>
+            <input type="text" id="new-user" placeholder="Nieuwe gebruikersnaam">
+            <input type="password" id="new-pass" placeholder="Nieuw wachtwoord">
+            <select id="new-role">
+                <option value="user">User (alleen bekijken)</option>
+                <option value="admin">Admin (volledige rechten)</option>
+            </select>
+            <button onclick="addUser()">Gebruiker Toevoegen</button>
+            
+            <div id="members-list">
+                <h3>Alle Leden:</h3>
+                <!-- Hier komen de leden -->
+            </div>
+        </div>
+        
+        <div id="user-panel">
+            <h2>User Panel - Alleen Bekijken</h2>
+            <div id="members-list-user">
+                <h3>Alle Leden:</h3>
+                <!-- Hier komen de leden voor users -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Standaard admin gebruiker toevoegen als die nog niet bestaat
+        if (!localStorage.getItem('users')) {
+            const defaultUsers = [{ username: 'admin', password: 'admin', role: 'admin' }];
+            localStorage.setItem('users', JSON.stringify(defaultUsers));
+        }
+
+        // Login logica met rollen
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                document.getElementById('login-form').style.display = 'none';
+                if (user.role === 'admin') {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    loadMembers(); // Laad leden voor admin
+                } else {
+                    document.getElementById('user-panel').style.display = 'block';
+                    loadMembersForUser(); // Laad leden voor user
+                }
+            } else {
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        // Leden toevoegen (alleen voor admin)
+        function addMember() {
+            const name = document.getElementById('member-name').value;
+            const email = document.getElementById('member-email').value;
+            const id = document.getElementById('member-id').value;
+            if (name && email && id) {
+                const members = JSON.parse(localStorage.getItem('members')) || [];
+                members.push({ name, email, id });
+                localStorage.setItem('members', JSON.stringify(members));
+                loadMembers(); // Herlaad lijst
+                // Velden legen
+                document.getElementById('member-name').value = '';
+                document.getElementById('member-email').value = '';
+                document.getElementById('member-id').value = '';
+            } else {
+                alert('Vul alle velden in!');
+            }
+        }
+
+        // Gebruikers toevoegen (alleen voor admin)
+        function addUser() {
+            const newUser = document.getElementById('new-user').value;
+            const newPass = document.getElementById('new-pass').value;
+            const newRole = document.getElementById('new-role').value;
+            if (newUser && newPass) {
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                users.push({ username: newUser, password: newPass, role: newRole });
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Gebruiker toegevoegd!');
+                // Velden legen
+                document.getElementById('new-user').value = '';
+                document.getElementById('new-pass').value = '';
+            } else {
+                alert('Vul alle velden in!');
+            }
+        }
+
+        // Leden laden voor admin
+        function loadMembers() {
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            const list = document.getElementById('members-list');
+            list.innerHTML = '<h3>Alle Leden:</h3>';
+            members.forEach(member => {
+                const div = document.createElement('div');
+                div.className = 'member';
+                div.innerHTML = `<strong>${member.name}</strong> - ${member.email} (ID: ${member.id})`;
+                list.appendChild(div);
+            });
+        }
+
+        // Leden laden voor user (alleen bekijken)
+        function loadMembersForUser() {
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            const list = document.getElementById('members-list-user');
+            list.innerHTML = '<h3>Alle Leden:</h3>';
+            members.forEach(member => {
+                const div = document.createElement('div');
+                div.className = 'member';
+                div.innerHTML = `<strong>${member.name}</strong> - ${member.email} (ID: ${member.id})`;
+                list.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
