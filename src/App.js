@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 
 const defaultMembers = [
-  { id: 1, name: "Jan", visits: 5 },
-  { id: 2, name: "Sanne", visits: 3 }
+  { id: 1, name: "Jan", visits: 5, username: "jan123", password: "wachtwoord1" },
+  { id: 2, name: "Sanne", visits: 3, username: "sanne456", password: "wachtwoord2" },
 ];
+
+const adminCredentials = { username: "admin", password: "admin" };
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -11,10 +13,12 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [members, setMembers] = useState(defaultMembers);
   const [newMemberName, setNewMemberName] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   function handleLogin(e) {
     e.preventDefault();
-    if (username === "admin" && password === "admin") {
+    if (username === adminCredentials.username && password === adminCredentials.password) {
       setUser({ role: "admin", name: "admin" });
     } else {
       alert("Foutieve gebruikersnaam of wachtwoord");
@@ -28,18 +32,25 @@ export default function App() {
   }
 
   function addMember() {
-    if (!newMemberName.trim()) return;
+    if (!newMemberName.trim() || !newUsername.trim() || !newPassword.trim()) {
+      alert("Vul alle velden in");
+      return;
+    }
     const newMember = {
       id: members.length ? members[members.length - 1].id + 1 : 1,
       name: newMemberName.trim(),
       visits: 0,
+      username: newUsername.trim(),
+      password: newPassword.trim(),
     };
     setMembers([...members, newMember]);
     setNewMemberName("");
+    setNewUsername("");
+    setNewPassword("");
   }
 
   function incrementVisits(id) {
-    setMembers(members.map(m => m.id === id ? {...m, visits: m.visits + 1} : m));
+    setMembers(members.map(m => m.id === id ? { ...m, visits: m.visits + 1 } : m));
   }
 
   if (!user) {
@@ -72,17 +83,34 @@ export default function App() {
   if (user.role === "admin") {
     return (
       <div style={styles.container}>
+        <div style={styles.topRight}>
+          <button onClick={handleLogout} style={styles.logoutButton}>Uitloggen</button>
+        </div>
+
         <h1>Admin-menu - BDF GYM life</h1>
-        <button onClick={handleLogout} style={styles.logoutButton}>Uitloggen</button>
 
         <h2>Leden toevoegen</h2>
-        <div style={{marginBottom: 20}}>
+        <div style={{ marginBottom: 20 }}>
           <input
             type="text"
-            placeholder="Nieuwe lid naam"
+            placeholder="Naam nieuw lid"
             value={newMemberName}
             onChange={e => setNewMemberName(e.target.value)}
-            style={styles.input}
+            style={styles.inputSmall}
+          />
+          <input
+            type="text"
+            placeholder="Gebruikersnaam"
+            value={newUsername}
+            onChange={e => setNewUsername(e.target.value)}
+            style={styles.inputSmall}
+          />
+          <input
+            type="password"
+            placeholder="Wachtwoord"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            style={styles.inputSmall}
           />
           <button onClick={addMember} style={styles.button}>Toevoegen</button>
         </div>
@@ -95,6 +123,8 @@ export default function App() {
             <thead>
               <tr>
                 <th>Naam</th>
+                <th>Gebruikersnaam</th>
+                <th>Wachtwoord</th>
                 <th>Aantal bezoeken</th>
                 <th>Bezoek toevoegen</th>
               </tr>
@@ -103,6 +133,8 @@ export default function App() {
               {members.map(member => (
                 <tr key={member.id}>
                   <td>{member.name}</td>
+                  <td>{member.username}</td>
+                  <td>{member.password}</td>
                   <td>{member.visits}</td>
                   <td>
                     <button onClick={() => incrementVisits(member.id)} style={styles.smallButton}>+</button>
@@ -121,14 +153,20 @@ export default function App() {
 
 const styles = {
   container: {
-    maxWidth: 400,
-    margin: "50px auto",
+    maxWidth: 600,
+    margin: "40px auto",
     padding: 20,
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     border: "1px solid #ccc",
     borderRadius: 6,
     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
     textAlign: "center",
+    position: "relative",
+  },
+  topRight: {
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
   form: {
     display: "flex",
@@ -141,6 +179,14 @@ const styles = {
     borderRadius: 4,
     border: "1px solid #aaa",
   },
+  inputSmall: {
+    padding: 8,
+    fontSize: 14,
+    borderRadius: 4,
+    border: "1px solid #aaa",
+    marginRight: 8,
+    width: "30%",
+  },
   button: {
     padding: 10,
     fontSize: 16,
@@ -149,9 +195,9 @@ const styles = {
     backgroundColor: "#0077cc",
     color: "#fff",
     cursor: "pointer",
+    marginTop: 5,
   },
   logoutButton: {
-    marginBottom: 20,
     padding: 8,
     fontSize: 14,
     borderRadius: 4,
@@ -174,30 +220,3 @@ const styles = {
     cursor: "pointer",
   }
 };
-
-if (!user) {
-  return (
-    <div style={styles.container}>
-      <h1>BDF GYM life</h1>
-      <form onSubmit={handleLogin} style={styles.form}>
-        <input
-          type="text"
-          placeholder="Gebruikersnaam"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          style={styles.input}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Wachtwoord"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={styles.input}
-          required
-        />
-        <button type="submit" style={styles.button}>Inloggen</button>
-      </form>
-    </div>
-  );
-}
